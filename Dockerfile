@@ -1,7 +1,7 @@
 FROM golang:1.24-alpine3.20 AS builder
 
-RUN apk add --no-cache ca-certificates tzdata
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
+ && apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-COPY --from=builder --chmod=755 /server /server
+COPY --from=builder --chown=appuser:appgroup --chmod=755 /server /server
 
 USER appuser
 
