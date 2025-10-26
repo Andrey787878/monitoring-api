@@ -1,0 +1,15 @@
+/server
+*.exe
+*.test
+*.out
+bin/
+dist/
+build/
+*.log
+logs/
+.env
+*.local
+.vscode/
+tmp/
+temp/
+*.tmp

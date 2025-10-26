@@ -1,0 +1,12 @@
+logs/
+*.log
+.git
+.gitignore
+*.md
+.vscode/
+dist/
+build/
+bin/
+*.exe
+.env
+*.local
