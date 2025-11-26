@@ -29,17 +29,23 @@ type MetricsResponse struct {
 	CPUCores      int    `json:"cpu_cores"`
 }
 
-func main() {
+func newRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
 
-	// Эндпоинты
+	r := gin.Default()
 	r.GET("/health", healthHandler)
 	r.GET("/ready", readyHandler)
 	r.GET("/metrics", metricsHandler)
 
+	return r
+}
+
+func main() {
+	r := newRouter()
+
 	// Корректное завершение
 	port := getEnv("PORT", "8080")
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
@@ -54,6 +60,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+
 	log.Println("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
