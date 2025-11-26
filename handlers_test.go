@@ -38,8 +38,10 @@ func TestHealth(t *testing.T) {
 	if resp.Version != version {
 		t.Errorf("expected version %q, got %q", version, resp.Version)
 	}
-	if resp.Uptime <= 0 {
-		t.Errorf("expected positive uptime, got %d", resp.Uptime)
+
+	// В CI аптайм может быть 0 секунд, если тест запускается сразу после старта.
+	if resp.Uptime < 0 {
+		t.Errorf("expected non-negative uptime, got %d", resp.Uptime)
 	}
 }
 
