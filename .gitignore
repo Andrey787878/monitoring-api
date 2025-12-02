@@ -1,15 +1,28 @@
-/server
-*.exe
-*.test
-*.out
-bin/
+# Logs
+logs/
+*.log
+
+# Общие артефакты
 dist/
 build/
-*.log
-logs/
-.env
-*.local
-.vscode/
+bin/
 tmp/
 temp/
 *.tmp
+*.out
+*.test
+*.exe
+
+# Конфиги и секреты
+.env
+*.local
+
+# IDE
+.vscode/
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
