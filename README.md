@@ -1,102 +1,232 @@
-# Go Monitoring API
+# Monitoring API & UI
 
-Минималистичный HTTP‑сервис на Go + Gin с эндпоинтами для проверки состояния, готовности и простых метрик, поддерживающий корректное завершение и конфигурацию порта через переменную PORT.
+Минималистичный мониторинг-сервис: HTTP-API на Go + Gin с эндпоинтами `/health`, `/ready`, `/metrics` и фронтендом на React + Vite, который отображает состояние сервиса и метрики в простом и наглядном дашборде.
 
-## Эндпоинты
+## Возможности
 
-- /health — состояние приложения, версия и аптайм
-  - Браузер: http://localhost:8080/health
-  - curl: `curl -s http://localhost:8080/health | jq .`
-- /ready — готовность (readiness)
-  - Браузер: http://localhost:8080/ready
-  - curl: `curl -s http://localhost:8080/ready | jq .`
-- /metrics — количество горутин, использование памяти и число CPU
-  - Браузер: http://localhost:8080/metrics
-  - curl: `curl -s http://localhost:8080/metrics | jq .`
+- `/health` — текущее состояние приложения, версия и аптайм.
+- `/ready` — состояние готовности (readiness-probe).
+- `/metrics` — количество горутин, использование памяти (MB) и число логических CPU.
+- Web-UI — дашборд, который:
 
-Пример ответов:
+  - регулярно опрашивает API,
+  - показывает статус сервиса,
+  - отображает версию, аптайм и метрики в реальном времени.
 
-```
-GET /health
-  {
-  "status": "healthy",
-  "version": "1.0.0",
-  "uptime_seconds": 21
-  }
-```
+## Стек
 
-```
-GET /ready
-  {
-  "status": "ready"
-  }
-```
+- **Backend**: Go 1.24, Gin 1.11 — один статический бинарник, без зависимостей в рантайме.
+- **Frontend**: React 19 + Vite 7, без UI-фреймворков.
+- **Node.js**: используется только для сборки фронтенда (Node 22.x).
+- **Docker**:
 
-```
-GET /metrics
-  {
-  "goroutines": 6,
-  "memory_usage_mb": 10,
-  "cpu_cores": 12
-  }
-```
+  - Backend: multi-stage build → минимальный distroless-образ под non-root.
+  - Frontend: сборка на `node:22-alpine`, статика раздаётся через `nginx:1.27-alpine`.
 
-## Запуск локально
+## Как это работает
 
-```
-go run main.go
-```
+Go-приложение поднимает HTTP-сервер с тремя маршрутами и считает аптайм с момента запуска.
+Фронтенд запрашивает API, подсвечивает статусы и отображает данные на дашборде.
+В режиме разработки Vite проксирует `/health`, `/ready`, `/metrics` на `http://localhost:8080`.
 
-По умолчанию сервер слушает порт 8080, изменить можно так:
+---
 
-```
-PORT=9090 go run main.go
+# Запуск без Docker
+
+## Требования
+
+- Go ≥ 1.24
+- Node.js ≥ 22
+- npm
+
+---
+
+## Backend
+
+Перейти в директорию:
+
+```bash
+cd backend
 ```
 
-И тогда маршруты будут по http://localhost:9090/health, /ready, /metrics.
+Запуск (порт по умолчанию — 8080):
 
-## Тесты и покрытие
-
-Запуск юнит‑тестов:
-
-```
-go test ./...
+```bash
+go run .
 ```
 
-Просмотр суммарного покрытия:
+Запуск на другом порту:
 
+```bash
+PORT=9090 go run .
 ```
-go test ./... -cover
+
+Сервер корректно завершает работу при SIGINT/SIGTERM.
+
+---
+
+## Frontend (Vite dev server)
+
+Перейти в директорию:
+
+```bash
+cd frontend
 ```
 
-Тесты находятся в `handlers_test.go`. Они проверяют:
-- корректный HTTP‑статус и JSON‑ответ для `/health`, `/ready`, `/metrics`
-- работу функции `getEnv` с установленной и не установленной переменной окружения.
+Установка зависимостей:
 
-## Запуск в Docker
+```bash
+npm ci
+```
+
+Запуск dev-сервера (5173 по умолчанию):
+
+```bash
+npm run dev
+```
+
+Выбор порта:
+
+```bash
+npm run dev -- --port 8081
+```
+
+Vite автоматически проксирует запросы к API на порт 8080.
+
+---
+
+# Запуск через Docker
+
+## Backend (Go + Gin)
+
+Перейти в директорию:
+
+```bash
+cd backend
+```
 
 Сборка образа:
 
-```
+```bash
 docker build -t monitoring-api .
 ```
 
-Запуск с публикацией порта по умолчанию:
+Запуск:
 
-```
+```bash
 docker run --rm -p 8080:8080 monitoring-api
 ```
 
-Смена порта:
+Запуск на другом порту:
 
-```
+```bash
 docker run --rm -e PORT=9090 -p 9090:9090 monitoring-api
 ```
 
-## Переменные окружения
+---
 
-- PORT — порт HTTP‑сервера, по умолчанию 8080
+## Frontend (React + Vite + Nginx)
 
-## Корректное завершение
+Перейти в директорию:
 
-Приложение обрабатывает SIGINT и SIGTERM и завершает работу корректно, дожидаясь активных запросов.
+```bash
+cd frontend
+```
+
+Сборка образа:
+
+```bash
+docker build -t monitoring-ui .
+```
+
+Запуск (UI доступен на [http://localhost:8081](http://localhost:8081)):
+
+```bash
+docker run --rm -p 8081:80 monitoring-ui
+```
+
+---
+
+# Тесты и качество
+
+## Backend
+
+```bash
+cd backend
+```
+
+Запуск тестов:
+
+```bash
+go test ./...
+```
+
+Покрытие:
+
+```bash
+go test ./... -cover
+```
+
+Проверяются корректность HTTP-ответов и поведение `getEnv`.
+
+---
+
+## Frontend
+
+```bash
+cd frontend
+```
+
+Unit-тесты:
+
+```bash
+npm test
+```
+
+Watch-режим:
+
+```bash
+npm run test:watch
+```
+
+Линтер:
+
+```bash
+npm run lint
+```
+
+---
+
+# Переменные окружения
+
+- `PORT` — порт HTTP-сервера (по умолчанию 8080).
+
+---
+
+# Структура проекта
+
+```
+.
+├── backend
+│   ├── main.go
+│   ├── handlers_test.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── Dockerfile
+│   └── .dockerignore
+├── frontend
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── App.test.jsx
+│   │   ├── main.jsx
+│   │   └── setupTests.js
+│   ├── index.html
+│   ├── vite.config.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── .dockerignore
+└── README.md
+```
