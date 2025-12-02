@@ -10,3 +10,5 @@ bin/
 *.exe
 .env
 *.local
+frontend/
+node_modules
