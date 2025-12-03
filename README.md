@@ -20,7 +20,7 @@
 - **Node.js**: используется только для сборки фронтенда (Node 22.x).
 - **Docker**:
 
-  - Backend: multi-stage build → минимальный distroless-образ под non-root.
+  - Backend: multi-stage build → runtime минимальный distroless-образ.
   - Frontend: сборка на `node:22-alpine`, статика раздаётся через `nginx:1.27-alpine`.
 
 ## Как это работает
@@ -28,6 +28,36 @@
 Go-приложение поднимает HTTP-сервер с тремя маршрутами и считает аптайм с момента запуска.
 Фронтенд запрашивает API, подсвечивает статусы и отображает данные на дашборде.
 В режиме разработки Vite проксирует `/health`, `/ready`, `/metrics` на `http://localhost:8080`.
+
+## Структура проекта
+
+```
+monitoring-api/
+├── backend/
+│   ├── main.go
+│   ├── handlers_test.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── Dockerfile
+│   └── .dockerignore
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── App.test.jsx
+│   │   ├── main.jsx
+│   │   └── setupTests.js
+│   ├── index.html
+│   ├── vite.config.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── .gitignore
+│   └── .dockerignore
+├── .gitignore
+└── README.md
+```
 
 ---
 
@@ -147,7 +177,7 @@ docker run --rm -p 8081:80 monitoring-ui
 
 ---
 
-# Тесты и качество
+# Тесты
 
 ## Backend
 
@@ -200,35 +230,3 @@ npm run lint
 # Переменные окружения
 
 - `PORT` — порт HTTP-сервера (по умолчанию 8080).
-
----
-
-# Структура проекта
-
-```
-monitoring-api/
-├── backend/
-│   ├── main.go
-│   ├── handlers_test.go
-│   ├── go.mod
-│   ├── go.sum
-│   ├── Dockerfile
-│   └── .dockerignore
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── App.test.jsx
-│   │   ├── main.jsx
-│   │   └── setupTests.js
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   └── .dockerignore
-├── .gitignore
-└── README.md
-```
-
