@@ -206,16 +206,16 @@ npm run lint
 # Структура проекта
 
 ```
-.
-├── backend
+monitoring-api/
+├── backend/
 │   ├── main.go
 │   ├── handlers_test.go
 │   ├── go.mod
 │   ├── go.sum
 │   ├── Dockerfile
 │   └── .dockerignore
-├── frontend
-│   ├── src
+├── frontend/
+│   ├── src/
 │   │   ├── App.jsx
 │   │   ├── App.css
 │   │   ├── App.test.jsx
@@ -228,5 +228,7 @@ npm run lint
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   └── .dockerignore
+├── .gitignore
 └── README.md
 ```
+
